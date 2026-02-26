@@ -8,6 +8,10 @@ $plugged = $battery.PowerOnline
 
 $gpu = Get-PnpDevice -FriendlyName $gpuName -Class Display
 
+# Verifica se há monitores externos
+$monitors = @(Get-PnpDevice -Class Monitor -Status OK)
+$externalDisplayConnected = $monitors.Count -gt 1
+
 if ($plugged -eq $false) {
     # MODO BATERIA
     if ($managePowerSaver) {
@@ -16,8 +20,8 @@ if ($plugged -eq $false) {
         powercfg /setactive SCHEME_CURRENT
     }
 
-    # Desativa GPU
-    if ($gpu.Status -eq "OK") {
+    # Desativa GPU (apenas se não houver tela externa conectada)
+    if ($gpu.Status -eq "OK" -and -not $externalDisplayConnected) {
         Disable-PnpDevice -InstanceId $gpu.InstanceId -Confirm:$false
     }
 } else {
